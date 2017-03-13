@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class ConfigurationReader {
@@ -13,12 +14,17 @@ public class ConfigurationReader {
 				new InputStreamReader(new FileInputStream(
 						new File(configFile)))));
 		
+		sc.nextLine();
+		
 		List<Assignment> assignments = new ArrayList<>();
-		while (sc.hasNext()) {
-			int x = sc.nextInt();
-			int y = sc.nextInt();
-			int q = sc.nextInt();
-			assignments.add(new Assignment(new Coordinate(x, y), q));
+		try {
+			while (sc.hasNext()) {
+				int x = sc.nextInt();
+				int y = sc.nextInt();
+				int q = sc.nextInt();
+				assignments.add(new Assignment(new Coordinate(x, y), q));
+			}
+		} catch (NoSuchElementException e) {
 		}
 		sc.close();
 		

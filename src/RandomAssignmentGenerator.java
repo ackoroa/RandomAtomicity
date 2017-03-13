@@ -9,18 +9,21 @@ public class RandomAssignmentGenerator {
 	public static Grid randomAssignment(final Grid grid, List<Integer> chargeSequence) {
 		Grid newGrid = new Grid(grid);
 		
-		int failedCount = 0;
+		int deadendCount = 0;
 		for (int i = 0; i < chargeSequence.size(); i++) {
-			if (newGrid.isDeadEnd()) {
-				failedCount++;
-				if (failedCount >= DEADEND_LIMIT) {
-					throw new DeadendConfigurationException("Deadend configuration for " + DEADEND_LIMIT + " tries");
+			List<Direction> dirs = newGrid.getLegalMoves(chargeSequence.size() - i);
+			
+			if (dirs.isEmpty()) {
+				deadendCount++;
+				if (deadendCount > DEADEND_LIMIT) {
+					throw new DeadendConfigurationException("Deadend configuration reached after " + DEADEND_LIMIT + " tries.\n" 
+							+ newGrid + chargeSequence.subList(i, chargeSequence.size()));
 				}
 				newGrid = new Grid(grid);
 				i = 0;
+				dirs = newGrid.getLegalMoves(chargeSequence.size() - i);
 			}
-			
-			List<Direction> dirs = newGrid.getLegalMoves();
+						
 			int charge = chargeSequence.get(i);
 			newGrid.assign(dirs.get(rand.nextInt(dirs.size())), charge);
 		}

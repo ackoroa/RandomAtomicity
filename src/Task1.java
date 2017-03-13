@@ -17,13 +17,14 @@ public class Task1 {
 		}
 		System.out.println("Configuration:");
 		System.out.println(endGrid);
+		System.out.println("Score: " + endGrid.computeScore());
 		
 		System.out.println("Verifying configuration...");
 		ConfigurationVerifier.verifyConfiguration(input, endGrid.getAssignments());
 		System.out.println("Configuration verified");
 
 		System.out.println("Saving configuration...");
-		ConfigurationWriter.writeConfigFile(args[1], endGrid.getAssignments());
+		ConfigurationWriter.writeConfigFile(args[1], input, endGrid.getAssignments(), endGrid.computeScore());
 		System.out.println("Saved configuration to " + args[1]);
 	}
 }

@@ -31,7 +31,7 @@ public class Task3 {
 		System.out.println("Configuration verified");
 
 		System.out.println("Saving configuration...");
-		ConfigurationWriter.writeConfigFile(args[1], grid.getAssignments());
+		ConfigurationWriter.writeConfigFile(args[1], input, grid.getAssignments(), grid.computeScore());
 		System.out.println("Saved configuration to " + args[1]);
 	}
 	

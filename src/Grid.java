@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 public class Grid {
 	private int width;
@@ -10,6 +12,7 @@ public class Grid {
 	private Coordinate currentPos;
 	private Cell[][] cells;
 	private List<Assignment> assignments;
+	private boolean movedVertical;
 	
 	public Grid(int width, int height) {
 		this.width = width;
@@ -18,13 +21,14 @@ public class Grid {
 		this.offsetY = 0;
 		
 		this.currentPos = Coordinate.INITIAL_POS;
-		this.cells = new Cell[width][height];
+		this.cells = new Cell[height][width];
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
 				cells[i][j] = new Cell();
 			}
 		}
 		this.assignments = new ArrayList<>();
+		this.movedVertical = false;
 	}
 	
 	public Grid(Grid other) {
@@ -34,13 +38,14 @@ public class Grid {
 		this.offsetY = other.offsetY;
 		
 		this.currentPos = other.currentPos;
-		this.cells = new Cell[width][height];
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
+		this.cells = new Cell[height][width];
+		for (int i = 0; i < height; i++) {
+			for (int j = 0; j < width; j++) {
 				cells[i][j] = new Cell(other.cells[i][j]);
 			}
 		}
 		this.assignments = new ArrayList<>(other.assignments);
+		this.movedVertical = other.movedVertical;
 	}
 	
 	public List<Assignment> getAssignments() {
@@ -49,131 +54,178 @@ public class Grid {
 	
 	public int computeScore() {
 		int score = 0;
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
+		for (int i = 0; i < height; i++) {
+			for (int j = 0; j < width; j++) {
 				if (cells[i][j].isEmpty()) {
 					continue;
 				}
-				if (!cells[(i + 1) % width][j].isEmpty()) {
-					score += cells[i][j].charge * cells[(i + 1) % width][j].charge;
+				if (!cells[(i + 1) % height][j].isEmpty()) {
+					score += cells[i][j].charge * cells[(i + 1) % height][j].charge;
 				}
-				if (!cells[i][(j + 1) % height].isEmpty()) {
-					score += cells[i][j].charge * cells[i][(j + 1) % height].charge;
+				if (!cells[i][(j + 1) % width].isEmpty()) {
+					score += cells[i][j].charge * cells[i][(j + 1) % width].charge;
 				}
 			}
 		}
 		return score;
 	}
 	
-	public boolean isDeadEnd() {
-		if (currentPos.equals(Coordinate.INITIAL_POS)) {
-			return false;
-		} 
-		
-		Coordinate up = getUpCoordinate();
-		Coordinate down = getDownCoordinate();
-		Coordinate left = getLeftCoordinate();
-		Coordinate right = getRightCoordinate();
-		if (cells[up.y][up.x].isEmpty() 
-				|| cells[down.y][down.x].isEmpty()
-				|| cells[left.y][left.x].isEmpty()
-				|| cells[right.y][right.x].isEmpty()) {
-			return false;
-		}
-		
-		return true;
-	}
-	
-	public List<Direction> getLegalMoves() {
+	public List<Direction> getLegalMoves(int seqLength) {
 		List<Direction> dirs = new ArrayList<>();
 		if (currentPos.equals(Coordinate.INITIAL_POS) || currentPos.equals(Coordinate.ORIGIN)) {
 			dirs.add(Direction.RIGHT);
 			return dirs;
 		}
 		
-		Coordinate up = getUpCoordinate();
-		Coordinate down = getDownCoordinate();
-		Coordinate left = getLeftCoordinate();
-		Coordinate right = getRightCoordinate();
+		Coordinate up = getUpCoordinate(currentPos);
+		Coordinate down = getDownCoordinate(currentPos);
+		Coordinate left = getLeftCoordinate(currentPos);
+		Coordinate right = getRightCoordinate(currentPos);
 		
-		;
-		if (cells[up.y][up.x].isEmpty()) {
+		if (cells[up.y][up.x].isEmpty() && movedVertical && isEnoughReachableCells(Direction.UP, seqLength)) {
 			dirs.add(Direction.UP);
 		}
-		if (cells[down.y][down.x].isEmpty()) {
+		if (cells[down.y][down.x].isEmpty() && isEnoughReachableCells(Direction.DOWN, seqLength)) {
 			dirs.add(Direction.DOWN);
 		}
-		if (cells[left.y][left.x].isEmpty()) {
+		if (cells[left.y][left.x].isEmpty() && isEnoughReachableCells(Direction.LEFT, seqLength)) {
 			dirs.add(Direction.LEFT);
 		}
-		if (cells[right.y][right.x].isEmpty()) {
+		if (cells[right.y][right.x].isEmpty() && isEnoughReachableCells(Direction.RIGHT, seqLength)) {
 			dirs.add(Direction.RIGHT);
 		}
 		
 		return dirs;
 	}
+	
+	private boolean isEnoughReachableCells(Direction dir, int seqLength) {
+		Coordinate initPos = getNextCoordinate(currentPos, dir);
+		
+		for (Direction nextDir : Direction.values()) {
+			boolean[][] tempCells = new boolean[height][width];
+			for (int i = 0; i < height; i++) {
+				for (int j = 0; j < width; j++) {
+					tempCells[i][j] = !this.cells[i][j].isEmpty();
+				}
+			}
+			tempCells[initPos.y][initPos.x] = true;
+			
+			int reachable = getReachableCellsOnOneSide(tempCells, getNextCoordinate(initPos, nextDir));
+			if (reachable >= seqLength -1) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private int getReachableCellsOnOneSide(boolean[][] tempCells, Coordinate startPos) {
+		Queue<Coordinate> q = new LinkedList<>();
+		q.add(startPos);
+				
+		int reachable = 0;
+		while (!q.isEmpty()) {
+			Coordinate pos = q.poll();
+			if (tempCells[pos.y][pos.x]) {
+				continue;
+			}
+			tempCells[pos.y][pos.x] = true;
+			reachable++;
+			
+			for (Direction dir : Direction.values()) {
+				Coordinate nextPos = getNextCoordinate(pos, dir);
+				if (!tempCells[nextPos.y][nextPos.x]) {
+					q.add(nextPos);
+				}
+			}		
+		}
+		return reachable;
+	}
 		
 	public boolean assign(Direction dir, int charge) {
+		boolean assigned;
 		switch (dir) {
 		case UP:
-			return assignUp(charge);
+			assigned = assignUp(charge);
+			if (assigned) {
+				movedVertical = true;
+			}
+			return assigned;
 		case DOWN:
-			return assignDown(charge);
+			assigned = assignDown(charge);
+			if (assigned) {
+				movedVertical = true;
+			}
+			return assigned;
 		case LEFT:
 			return assignLeft(charge);
 		case RIGHT:
 			return assignRight(charge);
-			default:
-				return false;
+		default:
+			return false;
 		}
 	}
 	
 	private boolean assignUp(int charge) {
 		Coordinate nextPos = currentPos.equals(Coordinate.INITIAL_POS) ?
-				Coordinate.ORIGIN : getUpCoordinate();
+				Coordinate.ORIGIN : getUpCoordinate(currentPos);
 		return assignCharge(nextPos, charge);
 	}
 	
-	private Coordinate getUpCoordinate() {
-		Coordinate upCoordinate = new Coordinate(currentPos.x, currentPos.y - 1);
+	private boolean assignDown(int charge) {
+		Coordinate nextPos = currentPos.equals(Coordinate.INITIAL_POS) ?
+				Coordinate.ORIGIN : getDownCoordinate(currentPos);
+		return assignCharge(nextPos, charge);
+	}
+	
+	private boolean assignLeft(int charge) {
+		Coordinate nextPos = currentPos.equals(Coordinate.INITIAL_POS) ?
+				Coordinate.ORIGIN : getLeftCoordinate(currentPos);
+		return assignCharge(nextPos, charge);
+	}
+	
+	private boolean assignRight(int charge) {
+		Coordinate nextPos = currentPos.equals(Coordinate.INITIAL_POS) ?
+				Coordinate.ORIGIN : getRightCoordinate(currentPos);		
+		return assignCharge(nextPos, charge);
+	}
+	
+	private Coordinate getNextCoordinate(Coordinate pos, Direction dir) {
+		switch (dir) {
+		case UP:
+			return getUpCoordinate(pos);
+		case DOWN:
+			return getDownCoordinate(pos);
+		case LEFT:
+			return getLeftCoordinate(pos);
+		case RIGHT:
+			return getRightCoordinate(pos);
+		default:
+			throw new IllegalArgumentException();
+		}
+	}
+	
+	private Coordinate getUpCoordinate(Coordinate pos) {
+		Coordinate upCoordinate = new Coordinate(pos.x, pos.y - 1);
 		if (upCoordinate.y < 0) {
 			upCoordinate.y = height - 1;
 		}
 		return upCoordinate;
 	}
 	
-	private boolean assignDown(int charge) {
-		Coordinate nextPos = currentPos.equals(Coordinate.INITIAL_POS) ?
-				Coordinate.ORIGIN : getDownCoordinate();
-		return assignCharge(nextPos, charge);
+	private Coordinate getDownCoordinate(Coordinate pos) {
+		return new Coordinate(pos.x, (pos.y + 1) % height);
 	}
 	
-	private Coordinate getDownCoordinate() {
-		return new Coordinate(currentPos.x, (currentPos.y + 1) % height);
-	}
-	
-	private boolean assignLeft(int charge) {
-		Coordinate nextPos = currentPos.equals(Coordinate.INITIAL_POS) ?
-				Coordinate.ORIGIN : getLeftCoordinate();
-		return assignCharge(nextPos, charge);
-	}
-	
-	private Coordinate getLeftCoordinate() {
-		Coordinate leftCoordinate = new Coordinate(currentPos.x - 1, currentPos.y);
+	private Coordinate getLeftCoordinate(Coordinate pos) {
+		Coordinate leftCoordinate = new Coordinate(pos.x - 1, pos.y);
 		if (leftCoordinate.x < 0) {
 			leftCoordinate.x = width - 1;
 		}
 		return leftCoordinate;
 	}
 	
-	private boolean assignRight(int charge) {
-		Coordinate nextPos = currentPos.equals(Coordinate.INITIAL_POS) ?
-				Coordinate.ORIGIN : getRightCoordinate();		
-		return assignCharge(nextPos, charge);
-	}
-	
-	private Coordinate getRightCoordinate() {
-		return new Coordinate((currentPos.x + 1) % width, currentPos.y);
+	private Coordinate getRightCoordinate(Coordinate pos) {
+		return new Coordinate((pos.x + 1) % width, pos.y);
 	}
 	
 	public boolean assignCoordinate(final Coordinate coordinate, final int charge) {
@@ -259,7 +311,7 @@ public class Grid {
 	
 	@Override
 	public String toString() {
-		String grid = "";
+		String grid = currentPos + "\n";
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
 				grid += cells[i][j].toString();
