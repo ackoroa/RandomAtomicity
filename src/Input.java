@@ -12,6 +12,8 @@ public class Input {
 	final public Grid grid;
 	final public List<Integer> chargeSequence;
 	
+	final public int norm;
+	
 	public Input(String inputFile) throws FileNotFoundException {
 		Scanner sc = new Scanner(new BufferedReader(
 				new InputStreamReader(new FileInputStream(
@@ -21,10 +23,17 @@ public class Input {
 		this.lY = sc.nextInt();
 		this.grid = new Grid(this.lX, this.lY);
 		
+		int norm = 0;
 		this.chargeSequence = new LinkedList<>();
 		while (sc.hasNext()) {
-			chargeSequence.add(sc.nextInt());
+			int q = sc.nextInt();
+			chargeSequence.add(q);
+			if (q != 0) {
+				norm++;
+			}
 		}
+		this.norm = norm;
+		
 		sc.close();
 	}
 }
