@@ -3,11 +3,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
 public class Input {
+	final public String filename;
+	
 	final public int lX, lY;
 	final public Grid grid;
 	final public List<Integer> chargeSequence;
@@ -18,6 +21,7 @@ public class Input {
 		Scanner sc = new Scanner(new BufferedReader(
 				new InputStreamReader(new FileInputStream(
 						new File(inputFile)))));
+		this.filename = inputFile.split("\\.")[0];
 		
 		this.lX = sc.nextInt();
 		this.lY = sc.nextInt();

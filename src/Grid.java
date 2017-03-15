@@ -239,13 +239,13 @@ public class Grid {
 		
 		cor.x -= offsetX;
 		if (cor.x < 0) {
-			cor.x = width - cor.x;
+			cor.x = width + cor.x;
 		}
 		cor.y -= offsetY;
 		if (cor.y < 0) {
-			cor.x = height - cor.y;
+			cor.y = height + cor.y;
 		}
-		
+
 		return assignCharge(cor, charge);
 	}
 	

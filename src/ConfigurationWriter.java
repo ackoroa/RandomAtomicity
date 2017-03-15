@@ -7,8 +7,8 @@ import java.io.PrintWriter;
 import java.util.List;
 
 public class ConfigurationWriter {
-	public static void writeConfigFile(String configFile, Input input, List<Assignment> config, int score) throws FileNotFoundException {
-		File output = new File(configFile);
+	public static void writeConfigFile(Input input, List<Assignment> config, int score) throws FileNotFoundException {
+		File output = new File(input.filename + ".out");
 		PrintWriter pr = new PrintWriter(new BufferedWriter(
 				new OutputStreamWriter(new FileOutputStream(output))));
 		
