@@ -3,7 +3,6 @@ import java.util.List;
 import java.util.Random;
 
 public class RandomAssignmentGenerator {
-	private static final int DEADEND_LIMIT = 10;
 	
 	public static Grid randomAssignment(final Grid grid, List<Integer> chargeSequence) {
 		Random rand = new Random(Calendar.getInstance().getTimeInMillis());
@@ -14,8 +13,8 @@ public class RandomAssignmentGenerator {
 			List<Direction> dirs = newGrid.getLegalMoves(chargeSequence.size() - i);
 			if (dirs.isEmpty()) {
 				deadendCount++;
-				if (deadendCount > DEADEND_LIMIT) {
-					throw new DeadendConfigurationException("Deadend configuration reached after " + DEADEND_LIMIT + " tries.\n" 
+				if (deadendCount > Parameters.DEADEND_LIMIT) {
+					throw new DeadendConfigurationException("Deadend configuration reached after " + Parameters.DEADEND_LIMIT + " tries.\n" 
 							+ newGrid + chargeSequence.subList(i, chargeSequence.size()));
 				}
 

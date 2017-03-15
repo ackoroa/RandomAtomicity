@@ -11,13 +11,14 @@ public class Task1 {
 		System.out.println("Generating random configuration...");
 		Grid endGrid = RandomAssignmentGenerator.randomAssignment(input.grid, input.chargeSequence);
 		
-		System.out.println("Configuration:");
 		for (Assignment assign : endGrid.getAssignments()) {
 			System.out.println(assign);
 		}
+		int score = endGrid.computeScore();
+		System.out.println("Score: " + score + " (" + (score + input.norm) / (2.0 * input.norm) + ")");
+		
 		System.out.println("Configuration:");
 		System.out.println(endGrid);
-		System.out.println("Score: " + endGrid.computeScore());
 		
 		System.out.println("Verifying configuration...");
 		ConfigurationVerifier.verifyConfiguration(input, endGrid.getAssignments());

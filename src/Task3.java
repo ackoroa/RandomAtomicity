@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map.Entry;
 
 public class Task3 {
-	private static final double C = 0.2;
-	private static final int BUDGET = 100; //TODO make this algorithmic
+	private static int bestScore = 0;
+	private static Grid bestGrid = null;
 	
 	public static void main(String args[]) throws FileNotFoundException {
 		if (args.length != 1) {
@@ -20,12 +20,21 @@ public class Task3 {
 		
 		Node v0 = new Node(grid, chargeSequence);
 		while (v0.getRemainingChargeSequence().size() > 0) {
-			v0 = uctSearch(v0, norm, BUDGET);
+			if (v0.legalMoves.size() == 1) {
+				v0 = v0.bestChild(0).getValue();
+			} else {
+				v0 = uctSearch(v0, norm, Parameters.getBudget(v0.getRemainingChargeSequence().size()));
+			}
 		}
 		Grid endGrid = v0.state;
 		
-		System.out.println("Score:");
-		System.out.println(endGrid.computeScore());
+		if (bestScore > endGrid.computeScore()) {
+			System.out.println("Random walk encountered better state.");
+			endGrid = bestGrid;
+		}
+
+		int score = endGrid.computeScore();
+		System.out.println("Score: " + score + " (" + (score + norm) / (2.0 * norm) + ")");
 		System.out.println("Configuration:");
 		System.out.println(endGrid);
 		
@@ -45,7 +54,9 @@ public class Task3 {
 			backup(v1, delta);
 		}
 		System.out.println("UCT search on\n" + v0);
-		System.out.println("Remaining sequence: " + v0.getRemainingChargeSequence());
+		System.out.println("Remaining sequence: " 
+				+ v0.getRemainingChargeSequence().size() + " " 
+				+ v0.getRemainingChargeSequence());
 		Entry<Direction, Node> bestChild = v0.bestChild(0);
 		System.out.println("Best Child: " + bestChild.getKey());
 		return bestChild.getValue();
@@ -59,7 +70,7 @@ public class Task3 {
 				return v.expand();
 			} else {
 //				System.out.println("Fully expanded -> move to best child");
-				v = v.bestChild(C).getValue();
+				v = v.bestChild(Parameters.C).getValue();
 			}
 		}
 		return v;
@@ -78,7 +89,13 @@ public class Task3 {
 //		System.out.println("Default policy on\n" + v);
 		try {
 			Grid randomGrid = RandomAssignmentGenerator.randomAssignment(v.state, v.getRemainingChargeSequence());
-			return (randomGrid.computeScore() + norm) / (2.0 * norm);
+			int score = randomGrid.computeScore();
+			
+			if (score > Task3.bestScore) {
+				bestGrid = randomGrid;
+			}
+			
+			return (score + norm) / (2.0 * norm);
 		} catch (DeadendConfigurationException e) {
 			return 0;
 		}

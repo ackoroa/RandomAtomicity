@@ -7,21 +7,23 @@ import java.util.Map.Entry;
 public class Node {
 	private static List<Integer> chargeSequence;
 	
-	Grid state;
-	List<Direction> legalMoves;
-	int seqPos;
+	public Grid state;
+	public List<Direction> legalMoves;
+	public int seqPos;
 	
-	Node parent;
-	Map<Direction, Node> children;
+	public Node parent;
+	public Map<Direction, Node> children;
 	
-	int n;
-	double q;
+	public int n;
+	public double q;
 	
 	public Node(Grid state, List<Integer> chargeSequence) {
 		Node.chargeSequence = chargeSequence;
 				
+		state.assign(Direction.RIGHT, chargeSequence.get(0));
+		state.assign(Direction.RIGHT, chargeSequence.get(1));
 		this.state = state;
-		this.seqPos = 0;
+		this.seqPos = 2;
 		this.legalMoves = state.getLegalMoves(chargeSequence.size() - seqPos);
 		
 		this.parent = null;
