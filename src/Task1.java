@@ -9,7 +9,7 @@ public class Task1 {
 		Input input = new Input(args[0]);
 		
 		System.out.println("Generating random configuration...");
-		Grid endGrid = RandomAssignmentGenerator.randomAssignment(input.grid, input.chargeSequence);
+		Grid endGrid = RandomAssignmentGenerator.randomAssignment(input.grid, input.chargeSequence, false);
 		
 		for (Assignment assign : endGrid.getAssignments()) {
 			System.out.println(assign);

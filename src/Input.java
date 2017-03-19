@@ -3,7 +3,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -27,7 +27,7 @@ public class Input {
 		this.grid = new Grid(this.lX, this.lY);
 		
 		int norm = 0;
-		this.chargeSequence = new LinkedList<>();
+		this.chargeSequence = new ArrayList<>();
 		while (sc.hasNext()) {
 			int q = sc.nextInt();
 			chargeSequence.add(q);
