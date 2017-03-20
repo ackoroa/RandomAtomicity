@@ -21,26 +21,36 @@ public class Task3 {
 		List<Integer> chargeSequence = new ArrayList<>(input.chargeSequence);
 		int norm = input.norm;
 	
-		Node result = ensembleSearch(grid, chargeSequence, norm, Parameters.C_EXPLORE, Parameters.C_PARTIAL);		
+		Node result = null;
+		
+		if (Parameters.USE_ENSEMBLE_SEARCH) {
+			result = ensembleSearch(grid, chargeSequence, norm, Parameters.C_EXPLORE, Parameters.C_PARTIAL);
+		} else {
+			result = search(grid, chargeSequence, norm, Parameters.C_EXPLORE, Parameters.C_PARTIAL);
+		}
 		processResult(input, result);
 	}
 	
 	private static Node search(Grid grid, List<Integer> chargeSequence, int norm, double cExplore, double cPartial) {
 		Node v0 = new Node(grid, chargeSequence, norm, cExplore, cPartial);
+
+		int i = 0;
+		int total = v0.getRemainingChargeSequence().size();
 		while (v0.getRemainingChargeSequence().size() > 0) {
+			i++;
+			int budget = Parameters.getBudget(v0.getRemainingChargeSequence().size());
+			System.out.println("Step " + i + "/" + total + " budget: " + budget + " " + new Date());
+			
 			if (v0.legalMoves.size() == 1) {
 				v0 = v0.bestChild(0, 0).getValue();
 			} else {
-				v0 = uctSearch(v0, norm, 
-						Parameters.getBudget(v0.getRemainingChargeSequence().size()),
-						cExplore, cPartial);
+				v0 = uctSearch(v0, norm, budget, cExplore, cPartial);
 			}
 			v0.parent = null;
 		}
 		return v0;
 	}
 
-	//TODO vary Cs for ensemble automatically
 	private static Node ensembleSearch(Grid grid, List<Integer> chargeSequence, int norm, double cExplore, double cPartial) {
 		List<Node> trees = new ArrayList<>();
 		for (int i = 0; i < Parameters.ENSEMBLE_SIZE; i++) {
@@ -53,7 +63,6 @@ public class Task3 {
 			i++;
 			int budget = Parameters.getBudget(trees.get(0).getRemainingChargeSequence().size());
 			System.out.println("Step " + i + "/" + total + " budget: " + budget + " " + new Date());
-			
 			
 			List<Direction> childDirs = new ArrayList<>();
 			for (Node v0 : trees) {

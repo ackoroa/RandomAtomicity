@@ -9,7 +9,11 @@ public class RandomAssignmentGenerator {
 		Grid newGrid = new Grid(grid);
 		
 		int deadendCount = 0;
-		for (int i = 0; i < Math.min(chargeSequence.size(), Parameters.MAX_LOOKAHEAD); i++) {
+		int iterationLimit = chargeSequence.size();
+		if (Parameters.USE_BUDGET_CAP) {
+			iterationLimit = Math.min(iterationLimit, Parameters.MAX_LOOKAHEAD);
+		}
+		for (int i = 0; i < iterationLimit; i++) {
 			List<Direction> dirs = newGrid.getLegalMoves(chargeSequence.size() - i);
 			if (dirs.isEmpty()) {
 				deadendCount++;
