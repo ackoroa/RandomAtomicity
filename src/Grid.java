@@ -67,7 +67,7 @@ public class Grid {
 				}
 			}
 		}
-		return score;
+		return -score;
 	}
 	
 	public List<Direction> getLegalMoves(int seqLength) {
